@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.ComponentModel;
 using ReLogic.Peripherals.RGB.Logitech;
+using System.Text;
 
 namespace KitPlugin
 {
@@ -149,6 +150,7 @@ namespace KitPlugin
                 args.Player.SendErrorMessage("У вас нет прав на использование этого кита.");
                 return;
             }
+
             string KeyLastDates = args.Player.Name + "-" + kitName;
             if (lastUsedKitDates.ContainsKey(KeyLastDates) && !ignoreCoolDown)
             {
@@ -156,14 +158,19 @@ namespace KitPlugin
                 double minutes = Config.config.Kits[kitName].Cooldown - timeSinceSave.TotalMinutes;
                 if (minutes > 0)
                 {
-                    args.Player.SendErrorMessage($"Вы недавно уже брали этот кит! Ждите {minutes} минут");
+                    args.Player.SendErrorMessage($"Вы недавно уже брали этот кит! {GetWaitTimeString(minutes)}");
                     return;
                 }
+
                 else
                 {
-                    //lastUsedKitDates.Remove(KeyLastDates);
-                    lastUsedKitDates[args.Player.Name + "-" + kitName] = DateTime.Now;
+                    lastUsedKitDates[KeyLastDates] = DateTime.Now;
                 }
+            }
+            else
+            {
+                //lastUsedKitDates.Remove(KeyLastDates);
+                lastUsedKitDates.Add(KeyLastDates, DateTime.Now);
             }
             // Выдача предметов из кита
             GiveKitItems(args.Player, Config.config.Kits[kitName].Items);
@@ -180,6 +187,51 @@ namespace KitPlugin
                 player.GiveItem(item.NetID, item.Stack);
             }
         }
+        public static string GetWaitTimeString(double minutes)
+        {
+            var waitTime = TimeSpan.FromMinutes(minutes);
+            var hours = (int)waitTime.TotalHours;
+            var minutesLeft = waitTime.Minutes;
+            var secondsLeft = waitTime.Seconds;
 
+            var sb = new StringBuilder();
+            if (hours > 0)
+            {
+                sb.Append($" {hours} {GetDeclension(hours, new[] { "час", "часа", "часов" })}");
+            }
+            if (minutesLeft > 0)
+            {
+                sb.Append($" {minutesLeft} {GetDeclension(minutesLeft, new[] { "минута", "минуты", "минут" })}");
+            }
+            if (secondsLeft > 0)
+            {
+                sb.Append($" {secondsLeft} {GetDeclension(secondsLeft, new[] { "секунда", "секунды", "секунд" })}");
+            }
+
+            var result = sb.ToString().Trim();
+            if (string.IsNullOrEmpty(result))
+            {
+                return string.Empty;
+            }
+            return $"Ждите {result}";
+        }
+        // Метод для определения склонения слов минут, секунд, часов
+        public static string GetDeclension(double value, string[] words)
+        {
+            value = Math.Abs(value) % 100;
+            var rem = value % 10;
+            if (rem > 4 || rem == 0 || (value >= 11 && value <= 14))
+            {
+                return words[2];
+            }
+            else if (rem == 1)
+            {
+                return words[0];
+            }
+            else
+            {
+                return words[1];
+            }
+        }
     }
 }
