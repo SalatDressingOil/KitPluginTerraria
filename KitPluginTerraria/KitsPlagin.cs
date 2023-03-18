@@ -23,38 +23,83 @@ namespace KitPlugin
         public override Version Version => new Version(1, 0, 0);
 
         public Dictionary<string, DateTime> lastUsedKitDates = new Dictionary<string, DateTime>();
-        public int CountKit = 0;
+        public int CountNoSaveKit = 0;
         public KitPlugin(Main game) : base(game)
         {
 
         }
         public override void Initialize()
         {
-            ServerApi.Hooks.WorldSave.Register(this, OnSaveUsedKitDates);
+            Config.LoadConfig();
+            if (File.Exists("lastUsedKitDates.json"))
+            {
+                JsonlastUsedKitDatesRemoveOld();
+            }
             Commands.ChatCommands.Add(new Command(KitCommand, "kit")
             {
-                HelpText = "Использование: /kit <имя> выдаёт соответствующий набор. /kit list выдаст список всех наборов"
+                HelpText = "Использование: /kit <имя> - выдаёт соответствующий набор. /kit list - выдаст список всех наборов. /kit help - выдаст помощь"
             });
-            Config.LoadConfig();
+            ServerApi.Hooks.WorldSave.Register(this, OnSaveUsedKitDates);
             string jsonString = JsonConvert.SerializeObject(Config.config);
             TShock.Log.ConsoleInfo(jsonString);
         }
 
+        private void JsonlastUsedKitDatesRemoveOld()
+        {
+            try
+            {
+                lastUsedKitDates = JsonConvert.DeserializeObject<Dictionary<string, DateTime>>(File.ReadAllText("lastUsedKitDates.json"));
+                int maxCooldown = 0;
+                foreach (var kit in Config.config.Kits.Values)
+                {
+                    if (kit.Cooldown > maxCooldown)
+                    {
+                        maxCooldown = kit.Cooldown;
+                    }
+                }
+                int count = 0;
+                foreach (string key in lastUsedKitDates.Keys.ToList())
+                {
+                    TimeSpan timeSinceSave = DateTime.Now - lastUsedKitDates[key];
+                    double minutes = maxCooldown - timeSinceSave.TotalMinutes;
+                    if (minutes <= 0)
+                    {
+                        lastUsedKitDates.Remove(key);
+                        count++;
+                    }
+                }
+                if (count > 0)
+                {
+                    TShock.Log.ConsoleInfo($"[KitPlugin] Успешно удалено {count} бесполезных запересей в lastUsedKitDates");
+                }
+            }
+            catch (Exception e)
+            {
+                TShock.Log.Error($"[KitPlugin] Ошибка в методе JsonlastUsedKitDatesRemoveOld:{e}");
+            }
+        }
         private void OnSaveUsedKitDates(WorldSaveEventArgs args)
         {
-            if (CountKit > 0)
+            TShock.Utils.Broadcast("СОХРАНЕНИЕ!", 0,0,255);
+            if (CountNoSaveKit > 0)
             {
+                TShock.Utils.Broadcast("CountNoSaveKit > 0!", 0, 0, 255);
                 if (File.Exists("lastUsedKitDates.json"))
                 {
-                    lastUsedKitDates = JsonConvert.DeserializeObject<Dictionary<string, DateTime>>(File.ReadAllText("lastUsedKitDates.json"));
+                    TShock.Utils.Broadcast("File.Exists(\"lastUsedKitDates.json\")!", 0, 0, 255);
+                    //lastUsedKitDates = JsonConvert.DeserializeObject<Dictionary<string, DateTime>>(File.ReadAllText("lastUsedKitDates.json"));
                 }
-                File.WriteAllText("lastUsedKitDates.json", JsonConvert.SerializeObject(lastUsedKitDates));
-                CountKit = 0;
+                string str = JsonConvert.SerializeObject(lastUsedKitDates);
+                TShock.Utils.Broadcast(str, 0, 0, 255);
+                File.WriteAllText("lastUsedKitDates.json", str);
+                CountNoSaveKit = 0;
+                TShock.Utils.Broadcast("CountNoSaveKit = 0", 0, 0, 255);
             }
         }
 
         protected override void Dispose(bool disposing)
         {
+            ServerApi.Hooks.WorldSave.Deregister(this, OnSaveUsedKitDates);
             if (disposing)
             {
                 base.Dispose(disposing);
@@ -129,7 +174,7 @@ namespace KitPlugin
             string kitName = args.Parameters[0];
             if (kitName == "help")
             {
-                args.Player.SendSuccessMessage($"Команда /kit нужна для выдачи наборов. Список наборов - /kit list");
+                args.Player.SendSuccessMessage($"Команда /kit <имя> нужна для выдачи наборов. Список наборов - /kit list");
             }
             if (kitName == "list")
             {
@@ -176,7 +221,7 @@ namespace KitPlugin
             GiveKitItems(args.Player, Config.config.Kits[kitName].Items);
 
             args.Player.SendSuccessMessage($"Кит \"{kitName}\" успешно получен.");
-            CountKit++;
+            CountNoSaveKit++;
         }
 
         // Метод для выдачи предметов из кита
@@ -187,6 +232,7 @@ namespace KitPlugin
                 player.GiveItem(item.NetID, item.Stack);
             }
         }
+        // Метод для создания итоговой строки при ошибке неистечения кулдовна
         public static string GetWaitTimeString(double minutes)
         {
             var waitTime = TimeSpan.FromMinutes(minutes);
@@ -215,7 +261,7 @@ namespace KitPlugin
             }
             return $"Ждите {result}";
         }
-        // Метод для определения склонения слов минут, секунд, часов
+        // Метод для определения склонения минут, секунд, часов
         public static string GetDeclension(double value, string[] words)
         {
             value = Math.Abs(value) % 100;
