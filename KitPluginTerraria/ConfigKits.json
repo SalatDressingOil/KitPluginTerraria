@@ -1,0 +1,53 @@
+{
+  "Kits": {
+    "start": {
+      "Items": [
+        { "NetID": 8, "Stack": 1 },
+        { "NetID": 1734, "Stack": 1 },
+        { "NetID": 9, "Stack": 100 },
+        { "NetID": 279, "Stack": 100 },
+        { "NetID": 282, "Stack": 100 },
+        { "NetID": 288, "Stack": 100 },
+        { "NetID": 290, "Stack": 100 },
+        { "NetID": 296, "Stack": 100 },
+        { "NetID": 298, "Stack": 100 },
+        { "NetID": 299, "Stack": 100 }
+      ],
+      "Cooldown": 600,
+      "PermissionGroups": ["default", "vip", "premium", "admin", "developer", "allperm", "superadmin"]
+    },
+    "vip": {
+      "Items": [
+        { "NetID": 8, "Stack": 1 },
+        { "NetID": 1734, "Stack": 1 },
+        { "NetID": 9, "Stack": 200 },
+        { "NetID": 279, "Stack": 200 },
+        { "NetID": 282, "Stack": 200 },
+        { "NetID": 288, "Stack": 200 },
+        { "NetID": 290, "Stack": 200 },
+        { "NetID": 296, "Stack": 200 },
+        { "NetID": 298, "Stack": 200 },
+        { "NetID": 299, "Stack": 200 }
+      ],
+      "Cooldown": 1800,
+      "PermissionGroups": ["vip", "premium", "admin", "developer", "allperm", "superadmin"]
+    },
+    "premium": {
+      "Items": [
+        { "NetID": 8, "Stack": 1 },
+        { "NetID": 1734, "Stack": 1 },
+        { "NetID": 9, "Stack": 500 },
+        { "NetID": 279, "Stack": 500 },
+        { "NetID": 282, "Stack": 500 },
+        { "NetID": 288, "Stack": 500 },
+        { "NetID": 290, "Stack": 500 },
+        { "NetID": 296, "Stack": 500 },
+        { "NetID": 298, "Stack": 500 },
+        { "NetID": 299, "Stack": 500 }
+      ],
+      "Cooldown": 3600,
+      "PermissionGroups": ["premium", "admin", "developer", "allperm", "superadmin"]
+    }
+  },
+  "PermissionsKitload": ["superadmin", "allperm"]
+}

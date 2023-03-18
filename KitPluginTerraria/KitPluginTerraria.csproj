@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="OTAPI">
+      <HintPath>D:\TerrariaServer\bin\OTAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="TerrariaServer">
+      <HintPath>D:\TerrariaServer\bin\TerrariaServer.dll</HintPath>
+    </Reference>
+    <Reference Include="TShockAPI">
+      <HintPath>D:\TerrariaServer\ServerPlugins\TShockAPI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
